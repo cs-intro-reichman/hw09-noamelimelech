@@ -4,13 +4,8 @@ import java.io.*;
 
 public class LanguageModel {
 
-    // Maps windows (strings) to lists of CharData objects.
     HashMap<String, List> CharDataMap;
-
-    // The window length used in this model.
     int windowLength;
-
-    // Random number generator
     private Random randomGenerator;
 
     public LanguageModel(int windowLength, int seed) {
@@ -27,8 +22,10 @@ public class LanguageModel {
 
     /** Builds a language model from the text in the given file (the corpus). */
     public void train(String fileName) {
-        StringBuilder corpusBuilder = new StringBuilder();
+        // tests may call train multiple times on the same object
+        CharDataMap.clear();
 
+        StringBuilder corpusBuilder = new StringBuilder();
         try (FileReader reader = new FileReader(fileName)) {
             int c;
             while ((c = reader.read()) != -1) {
@@ -41,12 +38,10 @@ public class LanguageModel {
         String corpus = corpusBuilder.toString();
         if (corpus.length() <= windowLength) return;
 
-        // Treat corpus as circular so last windows also get next char
-        String extended = corpus + corpus.substring(0, windowLength);
-
-        for (int i = 0; i < corpus.length(); i++) {
-            String window = extended.substring(i, i + windowLength);
-            char nextChr = extended.charAt(i + windowLength);
+        // NOT circular: only positions that have a real next character
+        for (int i = 0; i + windowLength < corpus.length(); i++) {
+            String window = corpus.substring(i, i + windowLength);
+            char nextChr = corpus.charAt(i + windowLength);
 
             List probs = CharDataMap.get(window);
             if (probs == null) {
@@ -61,7 +56,7 @@ public class LanguageModel {
         }
     }
 
-    /** Computes and sets the probabilities (p and cp fields) of all the characters in the given list. */
+    /** Computes and sets probabilities (p and cp) of all chars in list. */
     void calculateProbabilities(List probs) {
         if (probs == null || probs.getSize() == 0) return;
 
@@ -96,9 +91,9 @@ public class LanguageModel {
     }
 
     /**
-     * Generates a random text based on learned probabilities.
-     * IMPORTANT: textLength here is interpreted as "how many characters to ADD",
-     * not "final total length". (Matches your autograder behavior.)
+     * Generates random text.
+     * textLength is interpreted as "how many characters to ADD"
+     * (matches your autograder behavior).
      */
     public String generate(String initialText, int textLength) {
         if (initialText == null) return "";
@@ -112,14 +107,15 @@ public class LanguageModel {
         while (out.length() < targetLength) {
             String window = out.substring(out.length() - windowLength);
             List probs = CharDataMap.get(window);
+
             if (probs == null || probs.getSize() == 0) break;
+
             out.append(getRandomChar(probs));
         }
 
         return out.toString();
     }
 
-    /** Returns a string representing the map of this language model. */
     public String toString() {
         StringBuilder str = new StringBuilder();
         for (String key : CharDataMap.keySet()) {
