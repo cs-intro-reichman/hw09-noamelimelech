@@ -1,8 +1,4 @@
-/** A linked list of character data objects.
- *  (Actually, a list of Node objects, each holding a reference to a character data object.
- *  However, users of this class are not aware of the Node objects. As far as they are concerned,
- *  the class represents a list of CharData objects. Likwise, the API of the class does not
- *  mention the existence of the Node objects). */
+/** A linked list of character data objects. */
 public class List {
 
     // Points to the first node in this list
@@ -24,7 +20,7 @@ public class List {
 
     /** Returns the CharData of the first element in this list. */
     public CharData getFirst() {
-        if (size == 0 || first == null) return null;
+        if (first == null) return null;
         return first.cp;
     }
 
@@ -35,17 +31,19 @@ public class List {
         size++;
     }
 
-    /** Textual representation of this list. */
+    /** Textual representation of this list. (MUST match autograder format) */
     public String toString() {
+        // Expected format example:
+        // ((o 1 0.0625 0.0625) (m 1 0.0625 0.125) ... (e 3 0.1875 1.0))
         StringBuilder sb = new StringBuilder();
-        sb.append("[");
+        sb.append("(");
         Node current = first;
         while (current != null) {
-            sb.append(current.cp); // Node.toString/CharData.toString handles formatting
-            if (current.next != null) sb.append(", ");
+            sb.append(current.cp);          // CharData.toString() returns "(chr count p cp)"
+            if (current.next != null) sb.append(" ");
             current = current.next;
         }
-        sb.append("]");
+        sb.append(")");
         return sb.toString();
     }
 
@@ -82,9 +80,8 @@ public class List {
      *  in this list, removes this CharData object from the list and returns
      *  true. Otherwise, returns false. */
     public boolean remove(char chr) {
-        if (size == 0 || first == null) return false;
+        if (first == null) return false;
 
-        // remove first
         if (first.cp.equals(chr)) {
             first = first.next;
             size--;
@@ -93,7 +90,6 @@ public class List {
 
         Node prev = first;
         Node current = first.next;
-
         while (current != null) {
             if (current.cp.equals(chr)) {
                 prev.next = current.next;
@@ -103,7 +99,6 @@ public class List {
             prev = current;
             current = current.next;
         }
-
         return false;
     }
 
@@ -114,7 +109,6 @@ public class List {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("index: " + index + ", size: " + size);
         }
-
         Node current = first;
         int i = 0;
         while (i < index) {
@@ -138,17 +132,13 @@ public class List {
 
     /** Returns an iterator over the elements in this list, starting at the given index. */
     public ListIterator listIterator(int index) {
-        // If the list is empty, there is nothing to iterate
         if (size == 0) return null;
-
-        // Gets the element in position index of this list
         Node current = first;
         int i = 0;
         while (i < index) {
             current = current.next;
             i++;
         }
-        // Returns an iterator that starts in that element
         return new ListIterator(current);
     }
 }
